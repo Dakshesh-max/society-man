@@ -1,5 +1,7 @@
 import { Plus, Filter, Search, Wrench, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import { Layout } from "@/components/Layout";
+import { MaintenanceViewModal } from "@/components/modals/MaintenanceViewModal";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -111,6 +113,14 @@ const getStatusIcon = (status: string) => {
 };
 
 const Maintenance = () => {
+  const [selectedRequest, setSelectedRequest] = useState<typeof maintenanceRequests[0] | null>(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+
+  const handleViewRequest = (request: typeof maintenanceRequests[0]) => {
+    setSelectedRequest(request);
+    setShowViewModal(true);
+  };
+
   return (
     <Layout>
     <div className="space-y-6">
@@ -242,7 +252,7 @@ const Maintenance = () => {
                   <TableCell>{new Date(request.dateSubmitted).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleViewRequest(request)}>
                         View
                       </Button>
                       <Button variant="default" size="sm">
@@ -256,6 +266,12 @@ const Maintenance = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <MaintenanceViewModal
+        request={selectedRequest}
+        isOpen={showViewModal}
+        onClose={() => setShowViewModal(false)}
+      />
       </div>
     </Layout>
   );

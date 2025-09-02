@@ -1,5 +1,7 @@
 import { UserCheck, Clock, CheckCircle, AlertTriangle, Plus, Search, Filter } from "lucide-react";
 import { Layout } from "@/components/Layout";
+import { VisitorDetailsModal } from "@/components/modals/VisitorDetailsModal";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -114,6 +116,14 @@ const formatTime = (dateString: string) => {
 };
 
 const Visitors = () => {
+  const [selectedVisitor, setSelectedVisitor] = useState<typeof visitors[0] | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  const handleViewDetails = (visitor: typeof visitors[0]) => {
+    setSelectedVisitor(visitor);
+    setShowDetailsModal(true);
+  };
+
   return (
     <Layout>
     <div className="space-y-6">
@@ -271,7 +281,7 @@ const Visitors = () => {
                           Check Out
                         </Button>
                       ) : (
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => handleViewDetails(visitor)}>
                           View Details
                         </Button>
                       )}
@@ -283,6 +293,12 @@ const Visitors = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <VisitorDetailsModal
+        visitor={selectedVisitor}
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+      />
       </div>
     </Layout>
   );

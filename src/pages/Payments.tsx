@@ -1,5 +1,10 @@
 import { CreditCard, TrendingUp, AlertCircle, CheckCircle, Plus, Search, Filter } from "lucide-react";
 import { Layout } from "@/components/Layout";
+import { PaymentReceiptModal } from "@/components/modals/PaymentReceiptModal";
+import { PaymentDetailsModal } from "@/components/modals/PaymentDetailsModal";
+import { SendNoticeModal } from "@/components/modals/SendNoticeModal";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -117,6 +122,35 @@ const isOverdue = (dueDate: string, status: string) => {
 };
 
 const Payments = () => {
+  const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showNoticeModal, setShowNoticeModal] = useState(false);
+  const [noticeRecipient, setNoticeRecipient] = useState("");
+  const { toast } = useToast();
+
+  const handleViewReceipt = (payment: any) => {
+    setSelectedPayment(payment);
+    setShowReceiptModal(true);
+  };
+
+  const handleViewDetails = (payment: any) => {
+    setSelectedPayment(payment);
+    setShowDetailsModal(true);
+  };
+
+  const handleMarkPaid = (payment: any) => {
+    toast({
+      title: "Payment Marked as Paid",
+      description: `Payment for ${payment.flat} has been marked as paid.`,
+    });
+  };
+
+  const handleSendNotice = (payment: any) => {
+    setNoticeRecipient(payment.resident);
+    setShowNoticeModal(true);
+  };
+
   const totalPaid = payments
     .filter(p => p.status === "paid")
     .reduce((sum, p) => sum + p.amount, 0);
@@ -278,20 +312,24 @@ const Payments = () => {
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
-                  <TableCell>
+                   <TableCell>
                     <div className="flex space-x-2">
-                      {payment.status !== "paid" ? (
-                        <Button variant="default" size="sm">
-                          Mark Paid
-                        </Button>
-                      ) : (
-                        <Button variant="outline" size="sm">
-                          Receipt
-                        </Button>
-                      )}
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleViewReceipt(payment)}>
+                        Receipt
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleViewDetails(payment)}>
                         Details
                       </Button>
+                      {payment.status === 'pending' && (
+                        <Button size="sm" onClick={() => handleMarkPaid(payment)}>
+                          Mark Paid
+                        </Button>
+                      )}
+                      {payment.status === 'overdue' && (
+                        <Button variant="outline" size="sm" onClick={() => handleSendNotice(payment)}>
+                          Send Notice
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -300,6 +338,24 @@ const Payments = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <PaymentReceiptModal
+        payment={selectedPayment}
+        isOpen={showReceiptModal}
+        onClose={() => setShowReceiptModal(false)}
+      />
+
+      <PaymentDetailsModal
+        payment={selectedPayment}
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+      />
+
+      <SendNoticeModal
+        memberName={noticeRecipient}
+        isOpen={showNoticeModal}
+        onClose={() => setShowNoticeModal(false)}
+      />
       </div>
     </Layout>
   );

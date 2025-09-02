@@ -1,5 +1,7 @@
 import { Settings as SettingsIcon, Bell, Shield, Users, Building, Palette, Database } from "lucide-react";
 import { Layout } from "@/components/Layout";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +11,24 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 const Settings = () => {
+  const [visitorTimeLimit, setVisitorTimeLimit] = useState("8");
+  const [selfRegistration, setSelfRegistration] = useState(false);
+  const { toast } = useToast();
+
+  const handleExportData = () => {
+    toast({
+      title: "Data Export Started",
+      description: "Your data export will be ready for download shortly.",
+    });
+  };
+
+  const handleSystemBackup = () => {
+    toast({
+      title: "System Backup Initiated",
+      description: "System backup is being created. You will be notified when complete.",
+    });
+  };
+
   return (
     <Layout>
     <div className="space-y-6">
@@ -97,16 +117,6 @@ const Settings = () => {
               </div>
               <Switch defaultChecked />
             </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Visitor Alerts</Label>
-                <p className="text-sm text-muted-foreground">
-                  Notify residents when visitors check-in
-                </p>
-              </div>
-              <Switch />
-            </div>
           </CardContent>
         </Card>
 
@@ -151,7 +161,13 @@ const Settings = () => {
             <Separator />
             <div className="space-y-2">
               <Label htmlFor="visitorTimeLimit">Visitor Time Limit (hours)</Label>
-              <Input id="visitorTimeLimit" defaultValue="8" type="number" className="w-32" />
+              <Input 
+                id="visitorTimeLimit" 
+                value={visitorTimeLimit}
+                onChange={(e) => setVisitorTimeLimit(e.target.value)}
+                type="number" 
+                className="w-32" 
+              />
               <p className="text-sm text-muted-foreground">
                 Maximum allowed visitor duration
               </p>
@@ -175,7 +191,7 @@ const Settings = () => {
                   Allow residents to register themselves
                 </p>
               </div>
-              <Switch />
+              <Switch checked={selfRegistration} onCheckedChange={setSelfRegistration} />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
@@ -196,9 +212,6 @@ const Settings = () => {
                 </p>
               </div>
               <Switch />
-            </div>
-            <div className="pt-4">
-              <Button variant="outline">Manage User Roles</Button>
             </div>
           </CardContent>
         </Card>
@@ -242,8 +255,8 @@ const Settings = () => {
               <Switch />
             </div>
             <div className="flex space-x-4 pt-4">
-              <Button variant="outline">Export Data</Button>
-              <Button variant="outline">System Backup</Button>
+              <Button variant="outline" onClick={handleExportData}>Export Data</Button>
+              <Button variant="outline" onClick={handleSystemBackup}>System Backup</Button>
               <Button variant="destructive">Reset System</Button>
             </div>
           </CardContent>

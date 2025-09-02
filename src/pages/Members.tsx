@@ -1,4 +1,4 @@
-import { Search, Plus, Filter, MoreHorizontal } from "lucide-react";
+import { Plus, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Layout } from "@/components/Layout";
+import { MemberDetailsModal } from "@/components/modals/MemberDetailsModal";
+import { SendNoticeModal } from "@/components/modals/SendNoticeModal";
+import { useState } from "react";
 
 const members = [
   {
@@ -77,6 +80,21 @@ const getStatusBadge = (status: string) => {
 };
 
 const Members = () => {
+  const [selectedMember, setSelectedMember] = useState<typeof members[0] | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showNoticeModal, setShowNoticeModal] = useState(false);
+  const [noticeRecipient, setNoticeRecipient] = useState("");
+
+  const handleViewDetails = (member: typeof members[0]) => {
+    setSelectedMember(member);
+    setShowDetailsModal(true);
+  };
+
+  const handleSendNotice = (member: typeof members[0]) => {
+    setNoticeRecipient(member.name);
+    setShowNoticeModal(true);
+  };
+
   return (
     <Layout>
     <div className="space-y-6">
@@ -91,16 +109,6 @@ const Members = () => {
         </Button>
       </div>
 
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search members..." className="pl-10" />
-        </div>
-        <Button variant="outline">
-          <Filter className="mr-2 h-4 w-4" />
-          Filter
-        </Button>
-      </div>
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -193,9 +201,13 @@ const Members = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewDetails(member)}>
+                          View Details
+                        </DropdownMenuItem>
                         <DropdownMenuItem>Edit Member</DropdownMenuItem>
-                        <DropdownMenuItem>Send Notice</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleSendNotice(member)}>
+                          Send Notice
+                        </DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive">
                           Remove Member
                         </DropdownMenuItem>
@@ -208,6 +220,18 @@ const Members = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <MemberDetailsModal
+        member={selectedMember}
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+      />
+
+      <SendNoticeModal
+        memberName={noticeRecipient}
+        isOpen={showNoticeModal}
+        onClose={() => setShowNoticeModal(false)}
+      />
       </div>
     </Layout>
   );

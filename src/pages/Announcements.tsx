@@ -1,5 +1,8 @@
 import { Plus, Bell, Pin, Calendar, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AnnouncementEditModal } from "@/components/modals/AnnouncementEditModal";
+import { AnnouncementDetailsModal } from "@/components/modals/AnnouncementDetailsModal";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -88,6 +91,20 @@ const getCategoryColor = (category: string) => {
 };
 
 const Announcements = () => {
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<typeof announcements[0] | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  const handleEdit = (announcement: typeof announcements[0]) => {
+    setSelectedAnnouncement(announcement);
+    setShowEditModal(true);
+  };
+
+  const handleViewDetails = (announcement: typeof announcements[0]) => {
+    setSelectedAnnouncement(announcement);
+    setShowDetailsModal(true);
+  };
+
   return (
     <Layout>
     <div className="space-y-6">
@@ -200,10 +217,10 @@ const Announcements = () => {
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => handleEdit(announcement)}>
                     Edit
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => handleViewDetails(announcement)}>
                     View Details
                   </Button>
                 </div>
@@ -212,6 +229,18 @@ const Announcements = () => {
           </Card>
         ))}
       </div>
+
+      <AnnouncementEditModal
+        announcement={selectedAnnouncement}
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+      />
+
+      <AnnouncementDetailsModal
+        announcement={selectedAnnouncement}
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+      />
       </div>
     </Layout>
   );
