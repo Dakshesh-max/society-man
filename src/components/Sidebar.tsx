@@ -10,22 +10,25 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useLocation, Link } from "react-router-dom";
 
 interface SidebarProps {
   className?: string;
 }
 
 const navigation = [
-  { name: "Dashboard", href: "#", icon: Home, current: true },
-  { name: "Members", href: "#", icon: Users, current: false },
-  { name: "Maintenance", href: "#", icon: Wrench, current: false },
-  { name: "Announcements", href: "#", icon: Bell, current: false },
-  { name: "Visitors", href: "#", icon: UserCheck, current: false },
-  { name: "Payments", href: "#", icon: CreditCard, current: false },
-  { name: "Settings", href: "#", icon: Settings, current: false },
+  { name: "Dashboard", href: "/", icon: Home },
+  { name: "Members", href: "/members", icon: Users },
+  { name: "Maintenance", href: "/maintenance", icon: Wrench },
+  { name: "Announcements", href: "/announcements", icon: Bell },
+  { name: "Visitors", href: "/visitors", icon: UserCheck },
+  { name: "Payments", href: "/payments", icon: CreditCard },
+  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export const Sidebar = ({ className }: SidebarProps) => {
+  const location = useLocation();
+  
   return (
     <div className={cn("flex h-full w-64 flex-col bg-card border-r", className)}>
       <div className="flex items-center gap-2 p-6 border-b">
@@ -39,17 +42,21 @@ export const Sidebar = ({ className }: SidebarProps) => {
       <nav className="flex-1 space-y-1 p-4">
         {navigation.map((item) => {
           const Icon = item.icon;
+          const isActive = location.pathname === item.href;
           return (
             <Button
               key={item.name}
-              variant={item.current ? "default" : "ghost"}
+              variant={isActive ? "default" : "ghost"}
               className={cn(
                 "w-full justify-start gap-3",
-                item.current && "bg-primary text-primary-foreground"
+                isActive && "bg-primary text-primary-foreground"
               )}
+              asChild
             >
-              <Icon className="h-5 w-5" />
-              {item.name}
+              <Link to={item.href}>
+                <Icon className="h-5 w-5" />
+                {item.name}
+              </Link>
             </Button>
           );
         })}
