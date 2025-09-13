@@ -49,11 +49,14 @@ All colors MUST be HSL.
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 100% 70%));
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(215 25% 98%));
     --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(215 25% 98%));
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60% / 0.9), hsl(142 71% 45% / 0.8));
+    --gradient-accent: linear-gradient(90deg, hsl(199 89% 48%), hsl(217 91% 60%));
     
     /* Shadows */
     --shadow-elegant: 0 10px 30px -10px hsl(217 91% 60% / 0.15);
     --shadow-soft: 0 4px 15px -3px hsl(217 91% 60% / 0.1);
     --shadow-card: 0 2px 10px -2px hsl(215 25% 80% / 0.3);
+    --shadow-glow: 0 0 40px hsl(217 100% 70% / 0.3);
 
     --radius: 0.5rem;
 
@@ -120,5 +123,23 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+  
+  .shadow-elegant {
+    box-shadow: var(--shadow-elegant);
+  }
+  
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
   }
 }

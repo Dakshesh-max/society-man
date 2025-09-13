@@ -38,11 +38,17 @@ const stats = [
 
 export const DashboardStats = () => {
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat) => {
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {stats.map((stat, index) => {
+        const gradients = [
+          "bg-gradient-to-br from-primary/10 to-primary-glow/20 border-primary/20",
+          "bg-gradient-to-br from-info/10 to-info/20 border-info/20",
+          "bg-gradient-to-br from-warning/10 to-warning/20 border-warning/20",
+          "bg-gradient-to-br from-success/10 to-success/20 border-success/20"
+        ];
         const Icon = stat.icon;
         return (
-          <Card key={stat.title} className="border-0 shadow-card bg-gradient-to-br from-card to-secondary/30">
+          <Card key={stat.title} className={`${gradients[index]} shadow-soft hover-scale transition-all duration-200`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}

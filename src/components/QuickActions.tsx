@@ -58,9 +58,9 @@ export const QuickActions = () => {
   };
 
   return (
-    <Card>
+    <Card className="bg-gradient-to-br from-card to-card/50 shadow-elegant border-primary/10">
       <CardHeader>
-        <CardTitle>Quick Actions</CardTitle>
+        <CardTitle className="text-primary">Quick Actions</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-2">
         {actions.map((action) => {
@@ -69,7 +69,7 @@ export const QuickActions = () => {
             <Button
               key={action.title}
               variant={action.variant}
-              className="h-auto p-4 flex flex-col items-start space-y-2 hover-scale"
+              className="h-auto p-4 flex flex-col items-start space-y-2 hover-scale transition-all duration-200 hover:shadow-soft"
               onClick={() => handleClick(action.title)}
             >
               <div className="flex items-center space-x-2">
@@ -86,8 +86,7 @@ export const QuickActions = () => {
 
       {/* Modals */}
       <AddMemberModal isOpen={showAddMember} onClose={() => setShowAddMember(false)} />
-      {/* For create, we pass announcement as null */}
-      <AnnouncementEditModal announcement={null as any} isOpen={showCreateAnnouncement} onClose={() => setShowCreateAnnouncement(false)} />
+      <AnnouncementEditModal announcement={null} isOpen={showCreateAnnouncement} onClose={() => setShowCreateAnnouncement(false)} />
       <MaintenanceCreateModal isOpen={showLogMaintenance} onClose={() => setShowLogMaintenance(false)} />
       <GenerateReportModal isOpen={showGenerateReport} onClose={() => setShowGenerateReport(false)} />
     </Card>
