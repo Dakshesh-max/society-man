@@ -113,7 +113,7 @@ const Announcements = () => {
           <h1 className="text-3xl font-bold">Announcements</h1>
           <p className="text-muted-foreground">Society notices and important updates</p>
         </div>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => { setSelectedAnnouncement(null); setShowEditModal(true); }}>
           <Plus className="mr-2 h-4 w-4" />
           Create Announcement
         </Button>
