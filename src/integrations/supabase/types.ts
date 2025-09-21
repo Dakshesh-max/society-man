@@ -14,7 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      maintenance_logs: {
+        Row: {
+          assigned_to: string | null
+          category: string | null
+          created_at: string
+          description: string
+          id: string
+          priority: string | null
+          reported_by: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          priority?: string | null
+          reported_by: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          priority?: string | null
+          reported_by?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_logs_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      members: {
+        Row: {
+          address: string | null
+          dues: number | null
+          email: string
+          flat: string | null
+          id: string
+          name: string
+          phone: string
+          registration_date: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          dues?: number | null
+          email: string
+          flat?: string | null
+          id?: string
+          name: string
+          phone: string
+          registration_date?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          dues?: number | null
+          email?: string
+          flat?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          registration_date?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

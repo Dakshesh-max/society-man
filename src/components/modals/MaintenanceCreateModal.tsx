@@ -1,67 +1,123 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { logMaintenanceIssue } from "@/services/maintenanceService";
+import { fetchMembers, type Member } from "@/services/memberService";
 
 interface MaintenanceCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onLogCreated?: () => void;
 }
 
-export const MaintenanceCreateModal = ({ isOpen, onClose }: MaintenanceCreateModalProps) => {
+export const MaintenanceCreateModal = ({ isOpen, onClose, onLogCreated }: MaintenanceCreateModalProps) => {
   const { toast } = useToast();
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("Electrical");
+  const [category, setCategory] = useState("general");
   const [priority, setPriority] = useState("medium");
   const [description, setDescription] = useState("");
+  const [reportedBy, setReportedBy] = useState("");
+  const [members, setMembers] = useState<Member[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
-    if (!title || !description) {
-      toast({ title: "Missing details", description: "Please fill all required fields.", variant: "destructive" });
+  useEffect(() => {
+    const loadMembers = async () => {
+      try {
+        const data = await fetchMembers();
+        setMembers(data);
+      } catch (error) {
+        console.error("Failed to load members:", error);
+      }
+    };
+
+    if (isOpen) {
+      loadMembers();
+    }
+  }, [isOpen]);
+
+  const resetForm = () => {
+    setTitle("");
+    setCategory("general");
+    setPriority("medium");
+    setDescription("");
+    setReportedBy("");
+  };
+
+  const handleSubmit = async () => {
+    if (!title || !category || !priority || !description || !reportedBy) {
+      toast({ title: "Missing details", description: "Please fill all fields.", variant: "destructive" });
       return;
     }
-    toast({ title: "Maintenance logged", description: `Request for '${title}' submitted.` });
-    onClose();
-    // TODO: Integrate with Supabase later
+
+    setIsSubmitting(true);
+    try {
+      await logMaintenanceIssue({
+        title,
+        category,
+        priority: priority as 'low' | 'medium' | 'high' | 'urgent',
+        description,
+        reported_by: reportedBy
+      });
+
+      toast({ title: "Request logged", description: `${title} has been submitted successfully.` });
+      resetForm();
+      onClose();
+      onLogCreated?.();
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: error instanceof Error ? error.message : "Failed to log maintenance request", 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Log Maintenance</DialogTitle>
+          <DialogTitle>Log Maintenance Request</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
-            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Water leakage in B-205" />
+            <Label htmlFor="title">Title</Label>
+            <Input 
+              id="title" 
+              value={title} 
+              onChange={(e) => setTitle(e.target.value)} 
+              placeholder="e.g., Water leakage in B-205" 
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Category</Label>
+              <Label htmlFor="category">Category</Label>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Electrical">Electrical</SelectItem>
-                  <SelectItem value="Plumbing">Plumbing</SelectItem>
-                  <SelectItem value="Common Area">Common Area</SelectItem>
-                  <SelectItem value="Security">Security</SelectItem>
+                  <SelectItem value="plumbing">Plumbing</SelectItem>
+                  <SelectItem value="electrical">Electrical</SelectItem>
+                  <SelectItem value="cleaning">Cleaning</SelectItem>
+                  <SelectItem value="security">Security</SelectItem>
+                  <SelectItem value="general">General</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Priority</Label>
+              <Label htmlFor="priority">Priority</Label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
@@ -74,13 +130,39 @@ export const MaintenanceCreateModal = ({ isOpen, onClose }: MaintenanceCreateMod
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="desc">Description *</Label>
-            <Textarea id="desc" rows={5} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the issue with relevant details" />
+            <Label htmlFor="reportedBy">Reported By</Label>
+            <Select value={reportedBy} onValueChange={setReportedBy}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select member" />
+              </SelectTrigger>
+              <SelectContent>
+                {members.map((member) => (
+                  <SelectItem key={member.id} value={member.id}>
+                    {member.name} - {member.flat || "N/A"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea 
+              id="description" 
+              rows={4} 
+              value={description} 
+              onChange={(e) => setDescription(e.target.value)} 
+              placeholder="Describe the maintenance issue in detail..."
+            />
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={handleSubmit}>Submit</Button>
+            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Submit Request"}
+            </Button>
           </div>
         </div>
       </DialogContent>

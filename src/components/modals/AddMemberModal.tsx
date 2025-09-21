@@ -4,29 +4,58 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { registerNewMember } from "@/services/memberService";
 
 interface AddMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onMemberAdded?: () => void;
 }
 
-export const AddMemberModal = ({ isOpen, onClose }: AddMemberModalProps) => {
+export const AddMemberModal = ({ isOpen, onClose, onMemberAdded }: AddMemberModalProps) => {
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [flat, setFlat] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
+  const resetForm = () => {
+    setName("");
+    setFlat("");
+    setPhone("");
+    setEmail("");
+  };
+
+  const handleSubmit = async () => {
     if (!name || !flat || !phone || !email) {
       toast({ title: "Missing details", description: "Please fill all fields.", variant: "destructive" });
       return;
     }
 
-    toast({ title: "Member added", description: `${name} has been added successfully.` });
-    onClose();
+    setIsSubmitting(true);
+    try {
+      await registerNewMember({
+        name,
+        email,
+        phone,
+        flat,
+        status: 'active'
+      });
 
-    // NOTE: Hook up to Supabase later for real persistence
+      toast({ title: "Member added", description: `${name} has been added successfully.` });
+      resetForm();
+      onClose();
+      onMemberAdded?.();
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: error instanceof Error ? error.message : "Failed to add member", 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -57,8 +86,10 @@ export const AddMemberModal = ({ isOpen, onClose }: AddMemberModalProps) => {
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={handleSubmit}>Add Member</Button>
+            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? "Adding..." : "Add Member"}
+            </Button>
           </div>
         </div>
       </DialogContent>

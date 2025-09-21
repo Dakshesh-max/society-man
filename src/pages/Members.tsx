@@ -21,50 +21,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Layout } from "@/components/Layout";
 import { MemberDetailsModal } from "@/components/modals/MemberDetailsModal";
 import { SendNoticeModal } from "@/components/modals/SendNoticeModal";
-import { useState } from "react";
+import { AddMemberModal } from "@/components/modals/AddMemberModal";
+import { useState, useEffect } from "react";
+import { fetchMembers, type Member } from "@/services/memberService";
+import { useToast } from "@/components/ui/use-toast";
 
-const members = [
-  {
-    id: 1,
-    name: "Rajesh Kumar",
-    flat: "A-101",
-    phone: "+91 98765 43210",
-    email: "rajesh.kumar@email.com",
-    memberSince: "2020-01-15",
-    status: "active",
-    dues: 0,
-  },
-  {
-    id: 2,
-    name: "Priya Sharma",
-    flat: "B-205",
-    phone: "+91 98765 43211",
-    email: "priya.sharma@email.com",
-    memberSince: "2019-06-20",
-    status: "active",
-    dues: 0,
-  },
-  {
-    id: 3,
-    name: "Amit Patel",
-    flat: "C-304",
-    phone: "+91 98765 43212",
-    email: "amit.patel@email.com",
-    memberSince: "2021-03-10",
-    status: "pending",
-    dues: 2500,
-  },
-  {
-    id: 4,
-    name: "Sunita Devi",
-    flat: "A-203",
-    phone: "+91 98765 43213",
-    email: "sunita.devi@email.com",
-    memberSince: "2018-11-05",
-    status: "active",
-    dues: 0,
-  },
-];
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -80,20 +41,59 @@ const getStatusBadge = (status: string) => {
 };
 
 const Members = () => {
-  const [selectedMember, setSelectedMember] = useState<typeof members[0] | null>(null);
+  const { toast } = useToast();
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showNoticeModal, setShowNoticeModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [noticeRecipient, setNoticeRecipient] = useState("");
 
-  const handleViewDetails = (member: typeof members[0]) => {
+  const loadMembers = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchMembers();
+      setMembers(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to load members",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMembers();
+  }, []);
+
+  const handleViewDetails = (member: Member) => {
     setSelectedMember(member);
     setShowDetailsModal(true);
   };
 
-  const handleSendNotice = (member: typeof members[0]) => {
+  const handleSendNotice = (member: Member) => {
     setNoticeRecipient(member.name);
     setShowNoticeModal(true);
   };
+
+  const handleMemberAdded = () => {
+    loadMembers(); // Refresh the list
+  };
+
+  // Calculate stats
+  const totalMembers = members.length;
+  const activeMembers = members.filter(m => m.status === 'active').length;
+  const pendingDues = members.filter(m => m.dues > 0).length;
+  const totalDuesAmount = members.reduce((sum, m) => sum + m.dues, 0);
+  const thisMonthMembers = members.filter(m => {
+    const memberDate = new Date(m.registration_date);
+    const now = new Date();
+    return memberDate.getMonth() === now.getMonth() && memberDate.getFullYear() === now.getFullYear();
+  }).length;
 
   return (
     <Layout>
@@ -103,7 +103,10 @@ const Members = () => {
           <h1 className="text-3xl font-bold">Members</h1>
           <p className="text-muted-foreground">Manage society members and their information</p>
         </div>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+        <Button 
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
+          onClick={() => setShowAddModal(true)}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Add Member
         </Button>
@@ -116,8 +119,8 @@ const Members = () => {
             <CardTitle className="text-sm font-medium">Total Members</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">248</div>
-            <p className="text-xs text-muted-foreground">+12 this month</p>
+            <div className="text-2xl font-bold">{totalMembers}</div>
+            <p className="text-xs text-muted-foreground">+{thisMonthMembers} this month</p>
           </CardContent>
         </Card>
         <Card>
@@ -125,8 +128,10 @@ const Members = () => {
             <CardTitle className="text-sm font-medium">Active Members</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">235</div>
-            <p className="text-xs text-success">94.8% active rate</p>
+            <div className="text-2xl font-bold">{activeMembers}</div>
+            <p className="text-xs text-success">
+              {totalMembers > 0 ? ((activeMembers / totalMembers) * 100).toFixed(1) : 0}% active rate
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -134,8 +139,8 @@ const Members = () => {
             <CardTitle className="text-sm font-medium">Pending Dues</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">13</div>
-            <p className="text-xs text-warning">₹32,500 total</p>
+            <div className="text-2xl font-bold">{pendingDues}</div>
+            <p className="text-xs text-warning">₹{totalDuesAmount.toLocaleString()} total</p>
           </CardContent>
         </Card>
         <Card>
@@ -143,8 +148,8 @@ const Members = () => {
             <CardTitle className="text-sm font-medium">New This Month</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-info">Highest this year</p>
+            <div className="text-2xl font-bold">{thisMonthMembers}</div>
+            <p className="text-xs text-info">New registrations</p>
           </CardContent>
         </Card>
       </div>
@@ -154,70 +159,84 @@ const Members = () => {
           <CardTitle>Member Directory</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Member</TableHead>
-                <TableHead>Flat</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Member Since</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Dues</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {members.map((member) => (
-                <TableRow key={member.id}>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <Avatar>
-                        <AvatarFallback>
-                          {member.name.split(" ").map(n => n[0]).join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">{member.name}</div>
-                        <div className="text-sm text-muted-foreground">{member.email}</div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-medium">{member.flat}</TableCell>
-                  <TableCell>{member.phone}</TableCell>
-                  <TableCell>{new Date(member.memberSince).toLocaleDateString()}</TableCell>
-                  <TableCell>{getStatusBadge(member.status)}</TableCell>
-                  <TableCell>
-                    {member.dues > 0 ? (
-                      <span className="text-warning font-medium">₹{member.dues}</span>
-                    ) : (
-                      <span className="text-success">✓ Paid</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleViewDetails(member)}>
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>Edit Member</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleSendNotice(member)}>
-                          Send Notice
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          Remove Member
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <div className="text-muted-foreground">Loading members...</div>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Member</TableHead>
+                  <TableHead>Flat</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Member Since</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Dues</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {members.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      No members found. Click "Add Member" to get started.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  members.map((member) => (
+                    <TableRow key={member.id}>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          <Avatar>
+                            <AvatarFallback>
+                              {member.name.split(" ").map(n => n[0]).join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">{member.name}</div>
+                            <div className="text-sm text-muted-foreground">{member.email}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">{member.flat || "N/A"}</TableCell>
+                      <TableCell>{member.phone}</TableCell>
+                      <TableCell>{new Date(member.registration_date).toLocaleDateString()}</TableCell>
+                      <TableCell>{getStatusBadge(member.status)}</TableCell>
+                      <TableCell>
+                        {member.dues > 0 ? (
+                          <span className="text-warning font-medium">₹{member.dues}</span>
+                        ) : (
+                          <span className="text-success">✓ Paid</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleViewDetails(member)}>
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>Edit Member</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSendNotice(member)}>
+                              Send Notice
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive">
+                              Remove Member
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
@@ -231,6 +250,12 @@ const Members = () => {
         memberName={noticeRecipient}
         isOpen={showNoticeModal}
         onClose={() => setShowNoticeModal(false)}
+      />
+
+      <AddMemberModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onMemberAdded={handleMemberAdded}
       />
       </div>
     </Layout>

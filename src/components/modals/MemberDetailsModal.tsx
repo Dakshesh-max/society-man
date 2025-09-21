@@ -2,17 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-
-interface Member {
-  id: number;
-  name: string;
-  flat: string;
-  phone: string;
-  email: string;
-  memberSince: string;
-  status: string;
-  dues: number;
-}
+import { type Member } from "@/services/memberService";
 
 interface MemberDetailsModalProps {
   member: Member | null;
@@ -63,7 +53,7 @@ export const MemberDetailsModal = ({ member, isOpen, onClose }: MemberDetailsMod
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Flat Number</label>
-                <p className="font-medium">{member.flat}</p>
+                <p className="font-medium">{member.flat || "N/A"}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Phone</label>
@@ -74,7 +64,7 @@ export const MemberDetailsModal = ({ member, isOpen, onClose }: MemberDetailsMod
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Member Since</label>
-                <p className="font-medium">{new Date(member.memberSince).toLocaleDateString()}</p>
+                <p className="font-medium">{new Date(member.registration_date).toLocaleDateString()}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Outstanding Dues</label>
