@@ -96,6 +96,8 @@ const getStatusBadge = (status: string) => {
       return <Badge className="bg-warning text-warning-foreground">Pending</Badge>;
     case "overdue":
       return <Badge className="bg-destructive text-destructive-foreground">Overdue</Badge>;
+    case "notice_sent":
+      return <Badge className="bg-destructive text-destructive-foreground">Notice Sent</Badge>;
     case "partial":
       return <Badge className="bg-info text-info-foreground">Partial</Badge>;
     default:
@@ -127,6 +129,7 @@ const Payments = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showNoticeModal, setShowNoticeModal] = useState(false);
   const [noticeRecipient, setNoticeRecipient] = useState("");
+  const [paymentStatuses, setPaymentStatuses] = useState<Record<string, string>>({});
   const { toast } = useToast();
 
   const handleViewReceipt = (payment: any) => {
@@ -147,6 +150,10 @@ const Payments = () => {
   };
 
   const handleSendNotice = (payment: any) => {
+    setPaymentStatuses(prev => ({
+      ...prev,
+      [payment.id]: "notice_sent"
+    }));
     setNoticeRecipient(payment.resident);
     setShowNoticeModal(true);
   };
@@ -301,8 +308,8 @@ const Payments = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
-                      {getStatusIcon(payment.status)}
-                      {getStatusBadge(payment.status)}
+                      {getStatusIcon(paymentStatuses[payment.id] || payment.status)}
+                      {getStatusBadge(paymentStatuses[payment.id] || payment.status)}
                     </div>
                   </TableCell>
                   <TableCell>
