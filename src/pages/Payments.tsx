@@ -143,6 +143,10 @@ const Payments = () => {
   };
 
   const handleMarkPaid = (payment: any) => {
+    setPaymentStatuses(prev => ({
+      ...prev,
+      [payment.id]: "paid"
+    }));
     toast({
       title: "Payment Marked as Paid",
       description: `Payment for ${payment.flat} has been marked as paid.`,
@@ -320,19 +324,19 @@ const Payments = () => {
                     )}
                   </TableCell>
                    <TableCell>
-                    <div className="flex space-x-2">
+                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm" onClick={() => handleViewReceipt(payment)}>
                         Receipt
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => handleViewDetails(payment)}>
                         Details
                       </Button>
-                      {payment.status === 'pending' && (
+                      {(paymentStatuses[payment.id] || payment.status) === 'pending' && (
                         <Button size="sm" onClick={() => handleMarkPaid(payment)}>
                           Mark Paid
                         </Button>
                       )}
-                      {payment.status === 'overdue' && (
+                      {(paymentStatuses[payment.id] || payment.status) === 'overdue' && (
                         <Button variant="outline" size="sm" onClick={() => handleSendNotice(payment)}>
                           Send Notice
                         </Button>
