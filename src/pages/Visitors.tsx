@@ -1,7 +1,8 @@
 import { UserCheck, Clock, CheckCircle, AlertTriangle, Plus, Search, Filter } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { VisitorDetailsModal } from "@/components/modals/VisitorDetailsModal";
-import { useState } from "react";
+import { RegisterVisitorModal } from "@/components/modals/RegisterVisitorModal";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,65 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-const visitors = [
-  {
-    id: "V001",
-    name: "Rohit Sharma",
-    phone: "+91 98765 00001",
-    purpose: "Personal Visit",
-    hostFlat: "A-101",
-    hostName: "Rajesh Kumar",
-    checkIn: "2024-09-02T14:30:00",
-    checkOut: "2024-09-02T16:45:00",
-    status: "checked-out",
-    idType: "Aadhar Card",
-    idNumber: "****-****-1234",
-    vehicleNumber: "MH-04-AB-1234",
-  },
-  {
-    id: "V002",
-    name: "Delivery Boy",
-    phone: "+91 98765 00002",
-    purpose: "Package Delivery",
-    hostFlat: "B-205",
-    hostName: "Priya Sharma",
-    checkIn: "2024-09-02T10:15:00",
-    checkOut: "2024-09-02T10:25:00",
-    status: "checked-out",
-    idType: "PAN Card",
-    idNumber: "****-****-5678",
-    vehicleNumber: "MH-04-CD-5678",
-  },
-  {
-    id: "V003",
-    name: "Dr. Ashish Patel",
-    phone: "+91 98765 00003",
-    purpose: "Medical Consultation",
-    hostFlat: "C-304",
-    hostName: "Amit Patel",
-    checkIn: "2024-09-02T18:00:00",
-    checkOut: null,
-    status: "checked-in",
-    idType: "Driving License",
-    idNumber: "****-****-9012",
-    vehicleNumber: "MH-04-EF-9012",
-  },
-  {
-    id: "V004",
-    name: "Maya Singh",
-    phone: "+91 98765 00004",
-    purpose: "Personal Visit",
-    hostFlat: "A-203",
-    hostName: "Sunita Devi",
-    checkIn: "2024-09-02T19:30:00",
-    checkOut: null,
-    status: "checked-in",
-    idType: "Aadhar Card",
-    idNumber: "****-****-3456",
-    vehicleNumber: null,
-  },
-];
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -116,10 +61,35 @@ const formatTime = (dateString: string) => {
 };
 
 const Visitors = () => {
-  const [selectedVisitor, setSelectedVisitor] = useState<typeof visitors[0] | null>(null);
+  const [selectedVisitor, setSelectedVisitor] = useState<any>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [visitors, setVisitors] = useState<any[]>([]);
+  const { toast } = useToast();
 
-  const handleViewDetails = (visitor: typeof visitors[0]) => {
+  const fetchVisitors = async () => {
+    const { data, error } = await supabase
+      .from("visitors")
+      .select("*")
+      .order("check_in", { ascending: false });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch visitors",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setVisitors(data || []);
+  };
+
+  useEffect(() => {
+    fetchVisitors();
+  }, []);
+
+  const handleViewDetails = (visitor: any) => {
     setSelectedVisitor(visitor);
     setShowDetailsModal(true);
   };
@@ -132,7 +102,10 @@ const Visitors = () => {
           <h1 className="text-3xl font-bold">Visitor Management</h1>
           <p className="text-muted-foreground">Track and manage society visitors</p>
         </div>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+        <Button 
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
+          onClick={() => setShowRegisterModal(true)}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Register Visitor
         </Button>
@@ -236,17 +209,17 @@ const Visitors = () => {
                     <div>
                       <div className="font-medium">{visitor.name}</div>
                       <div className="text-sm text-muted-foreground">{visitor.phone}</div>
-                      {visitor.vehicleNumber && (
+                      {visitor.vehicle_number && (
                         <div className="text-sm text-muted-foreground">
-                          🚗 {visitor.vehicleNumber}
+                          🚗 {visitor.vehicle_number}
                         </div>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{visitor.hostFlat}</div>
-                      <div className="text-sm text-muted-foreground">{visitor.hostName}</div>
+                      <div className="font-medium">{visitor.host_flat}</div>
+                      <div className="text-sm text-muted-foreground">{visitor.host_name}</div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -254,15 +227,15 @@ const Visitors = () => {
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
-                      <div>{new Date(visitor.checkIn).toLocaleDateString()}</div>
-                      <div className="text-muted-foreground">{formatTime(visitor.checkIn)}</div>
+                      <div>{new Date(visitor.check_in).toLocaleDateString()}</div>
+                      <div className="text-muted-foreground">{formatTime(visitor.check_in)}</div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    {visitor.checkOut ? (
+                    {visitor.check_out ? (
                       <div className="text-sm">
-                        <div>{new Date(visitor.checkOut).toLocaleDateString()}</div>
-                        <div className="text-muted-foreground">{formatTime(visitor.checkOut)}</div>
+                        <div>{new Date(visitor.check_out).toLocaleDateString()}</div>
+                        <div className="text-muted-foreground">{formatTime(visitor.check_out)}</div>
                       </div>
                     ) : (
                       <span className="text-muted-foreground">-</span>
@@ -298,6 +271,12 @@ const Visitors = () => {
         visitor={selectedVisitor}
         isOpen={showDetailsModal}
         onClose={() => setShowDetailsModal(false)}
+      />
+      
+      <RegisterVisitorModal
+        isOpen={showRegisterModal}
+        onClose={() => setShowRegisterModal(false)}
+        onSuccess={fetchVisitors}
       />
       </div>
     </Layout>
