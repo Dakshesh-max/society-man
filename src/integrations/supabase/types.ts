@@ -100,6 +100,57 @@ export type Database = {
         }
         Relationships: []
       }
+      visitors: {
+        Row: {
+          check_in: string
+          check_out: string | null
+          created_at: string
+          host_flat: string
+          host_name: string
+          id: string
+          id_number: string | null
+          id_type: string | null
+          name: string
+          phone: string
+          purpose: string
+          status: string
+          updated_at: string
+          vehicle_number: string | null
+        }
+        Insert: {
+          check_in?: string
+          check_out?: string | null
+          created_at?: string
+          host_flat: string
+          host_name: string
+          id?: string
+          id_number?: string | null
+          id_type?: string | null
+          name: string
+          phone: string
+          purpose: string
+          status?: string
+          updated_at?: string
+          vehicle_number?: string | null
+        }
+        Update: {
+          check_in?: string
+          check_out?: string | null
+          created_at?: string
+          host_flat?: string
+          host_name?: string
+          id?: string
+          id_number?: string | null
+          id_type?: string | null
+          name?: string
+          phone?: string
+          purpose?: string
+          status?: string
+          updated_at?: string
+          vehicle_number?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
