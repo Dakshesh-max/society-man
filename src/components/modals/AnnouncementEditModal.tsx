@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Announcement {
-  id: number;
+  id: string;
   title: string;
   content: string;
   author: string;
@@ -25,14 +26,16 @@ interface AnnouncementEditModalProps {
   announcement: Announcement | null;
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export const AnnouncementEditModal = ({ announcement, isOpen, onClose }: AnnouncementEditModalProps) => {
+export const AnnouncementEditModal = ({ announcement, isOpen, onClose, onSuccess }: AnnouncementEditModalProps) => {
   const [title, setTitle] = useState(announcement?.title || "");
   const [content, setContent] = useState(announcement?.content || "");
   const [priority, setPriority] = useState(announcement?.priority || "medium");
   const [category, setCategory] = useState(announcement?.category || "Meeting");
   const [pinned, setPinned] = useState(announcement?.pinned || false);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const isCreate = !announcement;
@@ -54,7 +57,7 @@ export const AnnouncementEditModal = ({ announcement, isOpen, onClose }: Announc
     }
   }, [isOpen, announcement]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title || !content) {
       toast({
         title: "Error",
@@ -64,14 +67,59 @@ export const AnnouncementEditModal = ({ announcement, isOpen, onClose }: Announc
       return;
     }
 
-    toast({
-      title: isCreate ? "Announcement Created" : "Announcement Updated",
-      description: isCreate
-        ? "Your announcement has been created successfully."
-        : "The announcement has been updated successfully.",
-    });
-    
-    onClose();
+    setIsLoading(true);
+
+    try {
+      if (isCreate) {
+        const { error } = await supabase
+          .from('announcements')
+          .insert({
+            title,
+            content,
+            priority,
+            category,
+            is_pinned: pinned,
+            author: "Admin"
+          });
+
+        if (error) throw error;
+
+        toast({
+          title: "Announcement Created",
+          description: "Your announcement has been created successfully.",
+        });
+      } else {
+        const { error } = await supabase
+          .from('announcements')
+          .update({
+            title,
+            content,
+            priority,
+            category,
+            is_pinned: pinned,
+          })
+          .eq('id', announcement!.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Announcement Updated",
+          description: "The announcement has been updated successfully.",
+        });
+      }
+      
+      onSuccess?.();
+      onClose();
+    } catch (error) {
+      console.error('Error saving announcement:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save announcement. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -145,11 +193,11 @@ export const AnnouncementEditModal = ({ announcement, isOpen, onClose }: Announc
           </div>
 
           <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} disabled={isLoading}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>
-              {isCreate ? "Create" : "Save Changes"}
+            <Button onClick={handleSave} disabled={isLoading}>
+              {isLoading ? "Saving..." : isCreate ? "Create" : "Save Changes"}
             </Button>
           </div>
         </div>
