@@ -111,54 +111,34 @@ const Visitors = () => {
         </Button>
       </div>
 
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search visitors..." className="pl-10" />
-        </div>
-        <Select defaultValue="all">
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="checked-in">Checked In</SelectItem>
-            <SelectItem value="checked-out">Checked Out</SelectItem>
-            <SelectItem value="expected">Expected</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select defaultValue="today">
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Date" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="today">Today</SelectItem>
-            <SelectItem value="yesterday">Yesterday</SelectItem>
-            <SelectItem value="week">This Week</SelectItem>
-            <SelectItem value="month">This Month</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Visitors</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Visitors</CardTitle>
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">23</div>
-            <p className="text-xs text-muted-foreground">+3 from yesterday</p>
+            <div className="text-2xl font-bold">
+              {visitors.filter(v => v.status === "checked-in").length}
+            </div>
+            <p className="text-xs text-muted-foreground">Currently inside</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Currently Inside</CardTitle>
+            <CardTitle className="text-sm font-medium">Today's Total</CardTitle>
             <UserCheck className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2</div>
-            <p className="text-xs text-success">Active visitors</p>
+            <div className="text-2xl font-bold">
+              {visitors.filter(v => {
+                const today = new Date();
+                const checkIn = new Date(v.check_in);
+                return checkIn.toDateString() === today.toDateString();
+              }).length}
+            </div>
+            <p className="text-xs text-success">Registered today</p>
           </CardContent>
         </Card>
         <Card>
