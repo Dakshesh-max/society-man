@@ -198,7 +198,6 @@ const Visitors = () => {
                 <TableHead>Check In</TableHead>
                 <TableHead>Check Out</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -245,19 +244,6 @@ const Visitors = () => {
                     <div className="flex items-center space-x-2">
                       {getStatusIcon(visitor.status)}
                       {getStatusBadge(visitor.status)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      {visitor.status === "checked-in" ? (
-                        <Button variant="outline" size="sm" className="text-destructive">
-                          Check Out
-                        </Button>
-                      ) : (
-                        <Button variant="outline" size="sm" onClick={() => handleViewDetails(visitor)}>
-                          View Details
-                        </Button>
-                      )}
                     </div>
                   </TableCell>
                 </TableRow>
