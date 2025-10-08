@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const stats = [
   {
     title: "Total Members",
-    value: "248",
+    value: "90",
     icon: Users,
     change: "+12",
     changeType: "positive" as const,
@@ -12,7 +12,7 @@ const stats = [
   },
   {
     title: "Total Flats",
-    value: "120",
+    value: "50",
     icon: Home,
     change: "0",
     changeType: "neutral" as const,
