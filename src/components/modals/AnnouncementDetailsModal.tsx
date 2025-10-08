@@ -92,31 +92,6 @@ export const AnnouncementDetailsModal = ({ announcement, isOpen, onClose }: Anno
             <p className="mt-2 text-sm leading-relaxed">{announcement.content}</p>
           </div>
 
-          <Separator />
-
-          <div>
-            <label className="text-sm font-medium text-muted-foreground">Engagement Statistics</label>
-            <div className="mt-2 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">
-                    Read by {announcement.readBy} of {announcement.totalMembers} members
-                  </span>
-                </div>
-                <span className="text-sm font-medium">
-                  {Math.round((announcement.readBy / announcement.totalMembers) * 100)}%
-                </span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div 
-                  className="bg-success h-2 rounded-full" 
-                  style={{ width: `${(announcement.readBy / announcement.totalMembers) * 100}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
-
           <div className="bg-muted p-4 rounded-lg">
             <div className="text-sm space-y-2">
               <div><strong>Created:</strong> {new Date(announcement.date).toLocaleDateString()}</div>
